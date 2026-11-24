@@ -1,0 +1,803 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>اختبار تكنولوجيا المعلومات والاتصالات - الصف السادس الابتدائي | مدرسة منابر العلم</title>
+  <!-- استدعاء خط Tajawal / Cairo / Inter لدعم العربية الأنيقة -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Cairo', 'sans-serif'],
+          },
+          colors: {
+            primary: {
+              50: '#f0f7ff',
+              100: '#e0effe',
+              200: '#bae0fd',
+              600: '#0f4c81',
+              700: '#0b3a63',
+              800: '#082a49',
+            },
+            accent: {
+              500: '#d97706',
+              600: '#b45309',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    body {
+      font-family: 'Cairo', sans-serif;
+      background-color: #f8fafc;
+      color: #1e293b;
+      overflow-x: hidden;
+    }
+
+    /* العلامة المائية الخفيفة في الخلفية */
+    .watermark-bg {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%) rotate(-28deg);
+      font-size: clamp(2.5rem, 6vw, 5.5rem);
+      font-weight: 800;
+      color: rgba(15, 76, 129, 0.045);
+      pointer-events: none;
+      z-index: 0;
+      white-space: nowrap;
+      user-select: none;
+      direction: ltr;
+      letter-spacing: 4px;
+    }
+
+    /* تحسين شريط التمرير */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    ::-webkit-scrollbar-track {
+      background: #f1f5f9;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: #cbd5e1;
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: #94a3b8;
+    }
+
+    /* إعدادات الطباعة النظيفة بدون تذييل أو ترقيم صفحات */
+    @media print {
+      @page {
+        size: A4;
+        margin: 12mm;
+      }
+      body {
+        background: #ffffff !important;
+        color: #000000 !important;
+      }
+      .no-print {
+        display: none !important;
+      }
+      .print-only {
+        display: block !important;
+      }
+      .watermark-bg {
+        color: rgba(15, 76, 129, 0.08) !important;
+        position: fixed !important;
+      }
+      .shadow-sm, .shadow-md, .shadow-lg, .shadow-xl {
+        box-shadow: none !important;
+      }
+      .print-card {
+        border: 1px solid #cbd5e1 !important;
+        break-inside: avoid;
+        page-break-inside: avoid;
+        margin-bottom: 12px !important;
+      }
+    }
+  </style>
+</head>
+<body class="min-h-screen relative selection:bg-primary-100 selection:text-primary-800">
+
+  <!-- العلامة المائية في الخلفية -->
+  <div class="watermark-bg" aria-hidden="true">sabah almgdm</div>
+
+  <!-- مربع التنبيهات المخصص (بديل alert) -->
+  <div id="toast-container" class="fixed bottom-5 left-5 z-50 flex flex-col gap-2 max-w-sm w-full px-4 sm:px-0 no-print"></div>
+
+  <!-- نافذة رمز مرور المعلم -->
+  <div id="teacher-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200 transform transition-all">
+      <div class="flex items-center justify-between border-b border-slate-100 pb-4 mb-4">
+        <div class="flex items-center gap-3">
+          <div class="w-10 h-10 rounded-xl bg-primary-50 text-primary-600 flex items-center justify-center">
+            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z"></path>
+            </svg>
+          </div>
+          <div>
+            <h3 class="text-lg font-bold text-slate-800" id="modal-title">لوحة تحكم المعلمة</h3>
+            <p class="text-xs text-slate-500">أدخل الرمز السري للمتابعة</p>
+          </div>
+        </div>
+        <button onclick="closeTeacherModal()" class="text-slate-400 hover:text-slate-600 p-2 rounded-lg">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+        </button>
+      </div>
+      <div class="space-y-4">
+        <div>
+          <label for="teacher-pin" class="block text-sm font-semibold text-slate-700 mb-1.5">الرمز السري (PIN)</label>
+          <input type="password" id="teacher-pin" inputmode="numeric" maxlength="10" placeholder="••••••"
+            class="w-full px-4 py-3 rounded-xl border border-slate-300 focus:border-primary-600 focus:ring-2 focus:ring-primary-600/20 outline-none text-center text-xl tracking-widest font-bold"
+            onkeydown="if(event.key==='Enter') verifyTeacherPin()">
+          <p id="pin-error" class="text-red-600 text-xs font-semibold mt-1.5 hidden">الرمز السري غير صحيح، يرجى المحاولة مرة أخرى.</p>
+        </div>
+        <div class="flex gap-3 pt-2">
+          <button onclick="verifyTeacherPin()" class="flex-1 bg-primary-600 hover:bg-primary-700 text-white font-bold py-3 px-4 rounded-xl transition shadow-sm">
+            تأكيد الدخول
+          </button>
+          <button onclick="closeTeacherModal()" class="px-4 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold transition">
+            إلغاء
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- نافذة تأكيد تسليم الاختبار -->
+  <div id="confirm-submit-modal" class="fixed inset-0 bg-slate-900/60 backdrop-blur-sm z-50 hidden items-center justify-center p-4 no-print">
+    <div class="bg-white rounded-2xl shadow-2xl max-w-md w-full p-6 border border-slate-200">
+      <div class="w-12 h-12 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center mb-4">
+        <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+        </svg>
+      </div>
+      <h3 class="text-xl font-bold text-slate-800 mb-2">تأكيد تسليم الاختبار</h3>
+      <p id="submit-summary-text" class="text-sm text-slate-600 leading-relaxed mb-6">
+        هل أنت متأكد من رغبتك في إنهاء الاختبار وتسليم إجاباتك؟ لن تتمكن من التعديل بعد التسليم.
+      </p>
+      <div class="flex gap-3">
+        <button onclick="submitExam(false)" class="flex-1 bg-emerald-600 hover:bg-emerald-700 text-white font-bold py-3 px-4 rounded-xl transition shadow-sm">
+          نعم، تسليم نهائي
+        </button>
+        <button onclick="closeConfirmSubmit()" class="px-4 py-3 rounded-xl border border-slate-200 text-slate-600 hover:bg-slate-50 font-semibold transition">
+          مراجعة الإجابات
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- الشريط العلوي الثابت أثناء الحل -->
+  <div id="sticky-exam-bar" class="hidden sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-200 shadow-sm no-print">
+    <div class="max-w-5xl mx-auto px-4 py-3 flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-primary-600 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+          م
+        </div>
+        <div>
+          <div class="text-sm font-bold text-slate-800" id="bar-student-name">اسم الطالب</div>
+          <div class="text-xs text-slate-500">رقم الجلوس: <span id="bar-seat-number" class="font-bold text-primary-600">---</span></div>
+        </div>
+      </div>
+
+      <div class="flex items-center gap-3 sm:gap-5">
+        <!-- عداد الأسئلة المجاب عنها -->
+        <div class="bg-slate-100 px-3.5 py-2 rounded-xl flex items-center gap-2 border border-slate-200/80">
+          <span class="text-xs text-slate-500 font-semibold hidden sm:inline">الإنجاز:</span>
+          <span id="answered-counter" class="text-sm font-extrabold text-primary-700">0 / 36</span>
+        </div>
+
+        <!-- المؤقت الزمني التنازلي -->
+        <div id="timer-badge" class="bg-amber-50 border border-amber-200 text-amber-800 px-3.5 py-2 rounded-xl flex items-center gap-2 font-bold">
+          <svg class="w-4 h-4 text-amber-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+          </svg>
+          <span id="timer-display" class="text-sm font-extrabold tracking-wider" dir="ltr">45:00</span>
+        </div>
+      </div>
+    </div>
+    <!-- شريط التقدم الرفيع -->
+    <div class="w-full h-1 bg-slate-100">
+      <div id="progress-bar-fill" class="h-full bg-primary-600 transition-all duration-300" style="width: 0%"></div>
+    </div>
+  </div>
+
+  <!-- الحاوية الرئيسية -->
+  <main class="max-w-5xl mx-auto px-4 py-6 sm:py-8 relative z-10">
+
+    <!-- الترويسة الرسمية -->
+    <header class="bg-white rounded-2xl shadow-sm border border-slate-200/90 overflow-hidden mb-6 print-card">
+      <div class="h-2 bg-gradient-to-l from-primary-600 via-primary-700 to-accent-500"></div>
+      <div class="p-5 sm:p-6 flex flex-col md:flex-row items-center justify-between gap-4 text-center md:text-right">
+        <div class="space-y-1">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-primary-50 text-primary-700 text-xs font-bold mb-1">
+            <span>المملكة العربية السعودية - الرياض</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-black text-primary-800 tracking-tight">مدرسة منابر العلم</h1>
+          <p class="text-sm sm:text-base font-bold text-slate-600">امتحان الفترة الأولى للعام الدراسي ( 2026 - 2027م )</p>
+        </div>
+
+        <div class="bg-slate-50 border border-slate-200 rounded-2xl p-4 w-full md:w-auto min-w-[260px] text-right space-y-2">
+          <div class="flex items-center justify-between gap-4 text-sm">
+            <span class="text-slate-500 font-semibold">المادة:</span>
+            <span class="font-bold text-primary-700">تكنولوجيا المعلومات والاتصالات</span>
+          </div>
+          <div class="flex items-center justify-between gap-4 text-sm border-t border-slate-200/70 pt-2">
+            <span class="text-slate-500 font-semibold">الصف الدراسي:</span>
+            <span class="font-bold text-slate-800">السادس الابتدائي</span>
+          </div>
+          <div class="flex items-center justify-between gap-4 text-sm border-t border-slate-200/70 pt-2">
+            <span class="text-slate-500 font-semibold">زمن الاختبار:</span>
+            <span class="font-bold text-accent-600">45 دقيقة</span>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- 1. شاشة البداية وتسجيل بيانات الطالب -->
+    <section id="start-screen" class="bg-white rounded-2xl shadow-md border border-slate-200 p-6 sm:p-8 max-w-2xl mx-auto">
+      <div class="text-center mb-6">
+        <div class="w-16 h-16 rounded-2xl bg-primary-50 text-primary-600 flex items-center justify-center mx-auto mb-4 border border-primary-100">
+          <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"></path>
+          </svg>
+        </div>
+        <h2 class="text-xl sm:text-2xl font-extrabold text-slate-800">بوابة الدخول للاختبار الإلكتروني</h2>
+        <p class="text-sm text-slate-500 mt-1">يرجى كتابة الاسم الرباعي ورقم الجلوس بدقة قبل بدء الاختبار</p>
+      </div>
+
+      <!-- تنبيه في حال وجود محاولة سابقة -->
+      <div id="previous-attempt-alert" class="hidden mb-6 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-900">
+        <div class="font-bold flex items-center gap-2 mb-1">
+          <svg class="w-5 h-5 text-amber-600 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"></path></svg>
+          <span>تنبيه: تم تسجيل محاولة سابقة على هذا المتصفح</span>
+        </div>
+        <p class="text-xs text-amber-800 leading-relaxed mb-3" id="previous-attempt-details"></p>
+        <div class="flex flex-wrap gap-2">
+          <button onclick="viewSavedSubmission()" class="bg-primary-600 hover:bg-primary-700 text-white text-xs font-bold px-3.5 py-2 rounded-lg transition">
+            عرض شاشة التأكيد السابقة
+          </button>
+          <button onclick="openTeacherModal('reset')" class="bg-white border border-amber-300 hover:bg-amber-100 text-amber-900 text-xs font-bold px-3.5 py-2 rounded-lg transition">
+            إعادة ضبط للمعلمة
+          </button>
+        </div>
+      </div>
+
+      <div class="space-y-4">
+        <div>
+          <label for="student-name-input" class="block text-sm font-bold text-slate-700 mb-1.5">
+            اسم الطالب / الطالبة الكامل <span class="text-red-500">*</span>
+          </label>
+          <input type="text" id="student-name-input" placeholder="اكتب اسمك الكامل هنا..."
+            class="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:border-primary-600 focus:ring-2 focus:ring-primary-600/20 outline-none text-slate-800 font-semibold transition">
+        </div>
+
+        <div>
+          <label for="seat-number-input" class="block text-sm font-bold text-slate-700 mb-1.5">
+            رقم الجلوس <span class="text-red-500">*</span>
+          </label>
+          <input type="text" id="seat-number-input" inputmode="numeric" placeholder="أدخل رقم الجلوس..."
+            class="w-full px-4 py-3.5 rounded-xl border border-slate-300 focus:border-primary-600 focus:ring-2 focus:ring-primary-600/20 outline-none text-slate-800 font-semibold transition">
+        </div>
+
+        <div class="bg-slate-50 rounded-xl p-4 border border-slate-200/80 text-xs text-slate-600 space-y-1.5">
+          <div class="font-bold text-slate-800 mb-1">تعليمات هامة قبل البدء:</div>
+          <div>• يتكون الاختبار من <strong>4 أقسام رئيسية</strong> (نعم/لا، أكمل الفراغ، التوصيل، والأسئلة المقالية).</div>
+          <div>• مدة الاختبار <strong>45 دقيقة</strong>، وسيتم تسليم إجاباتك تلقائياً عند انتهاء الوقت.</div>
+          <div>• لا يُسمح بتكرار المحاولة لنفس الطالب على نفس المتصفح بعد التسليم.</div>
+        </div>
+
+        <button onclick="startExam()" class="w-full bg-primary-600 hover:bg-primary-700 text-white font-extrabold text-base py-4 px-6 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2 mt-2">
+          <span>ابدأ الاختبار الآن</span>
+          <svg class="w-5 h-5 rotate-180" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
+          </svg>
+        </button>
+      </div>
+    </section>
+
+    <!-- 2. شاشة الأسئلة التفاعلية -->
+    <form id="exam-form" class="hidden space-y-8" onsubmit="return false;">
+
+      <!-- القسم الأول: نعم أو لا -->
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-primary-600 text-white px-5 py-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg sm:text-xl font-extrabold">السؤال الأول: أجب بـ (نعم) أو (لا) أمام العبارات التالية</h2>
+            <p class="text-xs text-primary-100 mt-0.5">اختر الإجابة الصحيحة لكل فقرة من الفقرات الـ (13) التالية</p>
+          </div>
+          <span class="bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-xl shrink-0">13 فقرة</span>
+        </div>
+        <div id="section1-container" class="divide-y divide-slate-100 p-4 sm:p-6 space-y-4"></div>
+      </section>
+
+      <!-- القسم الثاني: أكمل العبارات -->
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-primary-600 text-white px-5 py-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg sm:text-xl font-extrabold">السؤال الثاني: أكمل العبارات التالية بالكلمة أو العبارة المناسبة</h2>
+            <p class="text-xs text-primary-100 mt-0.5">اختر المصطلح المناسب لإكمال كل جملة من القائمة المنسدلة</p>
+          </div>
+          <span class="bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-xl shrink-0">10 فقرات</span>
+        </div>
+        <div id="section2-container" class="p-4 sm:p-6 space-y-4"></div>
+      </section>
+
+      <!-- القسم الثالث: التوصيل -->
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-primary-600 text-white px-5 py-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg sm:text-xl font-extrabold">السؤال الثالث: صل من القائمة (أ) ما يناسبها من القائمة (ب)</h2>
+            <p class="text-xs text-primary-100 mt-0.5">اختر التعريف أو الوصف المناسب لكل مصطلح في القائمة (أ)</p>
+          </div>
+          <span class="bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-xl shrink-0">7 فقرات</span>
+        </div>
+        <div id="section3-container" class="p-4 sm:p-6 space-y-4"></div>
+      </section>
+
+      <!-- القسم الرابع: الأسئلة المقالية -->
+      <section class="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        <div class="bg-primary-600 text-white px-5 py-4 flex items-center justify-between">
+          <div>
+            <h2 class="text-lg sm:text-xl font-extrabold">السؤال الرابع: أجب عن الأسئلة المقالية التالية بإيجاز</h2>
+            <p class="text-xs text-primary-100 mt-0.5">اكتب إجابتك بوضوح في المربع المخصص أسفل كل سؤال</p>
+          </div>
+          <span class="bg-white/20 text-white text-xs font-bold px-3 py-1.5 rounded-xl shrink-0">6 أسئلة</span>
+        </div>
+        <div id="section4-container" class="p-4 sm:p-6 space-y-6"></div>
+      </section>
+
+      <!-- زر التسليم النهائي -->
+      <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-6 flex flex-col sm:flex-row items-center justify-between gap-4">
+        <div class="text-center sm:text-right">
+          <h3 class="font-bold text-slate-800 text-base">هل أنهيت مراجعة جميع إجاباتك؟</h3>
+          <p class="text-xs text-slate-500 mt-0.5">اضغط على زر التسليم لحفظ إجاباتك وإرسالها للمعلمة.</p>
+        </div>
+        <button type="button" onclick="openConfirmSubmit()" class="w-full sm:w-auto bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-base px-8 py-4 rounded-xl shadow-md hover:shadow-lg transition flex items-center justify-center gap-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <span>تسليم الاختبار</span>
+        </button>
+      </div>
+    </form>
+
+    <!-- 3. شاشة التأكيد بعد التسليم + لوحة المعلم -->
+    <section id="result-screen" class="hidden space-y-6">
+      <!-- بطاقة تأكيد الاستلام للطالب -->
+      <div class="bg-white rounded-2xl shadow-md border border-slate-200 p-6 sm:p-8 text-center print-card">
+        <div class="w-20 h-20 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center mx-auto mb-4 border-4 border-emerald-100 no-print">
+          <svg class="w-10 h-10" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <span class="inline-block px-3.5 py-1 rounded-full bg-emerald-50 text-emerald-700 text-xs font-bold mb-2">
+          حالة التسليم: مكتمل بنجاح
+        </span>
+        <h2 class="text-2xl sm:text-3xl font-black text-slate-800 mb-2">تم استلام إجاباتك بنجاح وحفظها لدى المعلمة</h2>
+        <p class="text-sm text-slate-500 max-w-lg mx-auto mb-6">
+          شكراً لك على إتمام اختبار مادة تكنولوجيا المعلومات والاتصالات. تم توثيق محاولتك بنجاح.
+        </p>
+
+        <!-- بطاقة بيانات الطالب ووقت التسليم -->
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 max-w-2xl mx-auto bg-slate-50 p-4 rounded-2xl border border-slate-200 text-right mb-6">
+          <div class="bg-white p-3 rounded-xl border border-slate-100">
+            <div class="text-xs text-slate-400 font-semibold">اسم الطالب / الطالبة</div>
+            <div class="text-sm font-extrabold text-slate-800 mt-0.5" id="conf-student-name">---</div>
+          </div>
+          <div class="bg-white p-3 rounded-xl border border-slate-100">
+            <div class="text-xs text-slate-400 font-semibold">رقم الجلوس</div>
+            <div class="text-sm font-extrabold text-primary-700 mt-0.5" id="conf-seat-number">---</div>
+          </div>
+          <div class="bg-white p-3 rounded-xl border border-slate-100">
+            <div class="text-xs text-slate-400 font-semibold">وقت التسليم</div>
+            <div class="text-sm font-extrabold text-slate-800 mt-0.5" id="conf-submit-time">---</div>
+          </div>
+        </div>
+
+        <!-- أزرار التحكم (لوحة المعلم + الطباعة) -->
+        <div class="flex flex-wrap items-center justify-center gap-3 no-print">
+          <button id="btn-open-teacher-panel" onclick="openTeacherModal('view')" class="bg-primary-600 hover:bg-primary-700 text-white font-bold text-sm px-5 py-3 rounded-xl shadow-sm transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+            </svg>
+            <span>لوحة المعلم / عرض النتيجة والنموذج</span>
+          </button>
+
+          <button onclick="window.print()" class="bg-white hover:bg-slate-50 text-slate-700 border border-slate-300 font-bold text-sm px-5 py-3 rounded-xl transition flex items-center gap-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"></path>
+            </svg>
+            <span>طباعة ورقة الإجابة</span>
+          </button>
+
+          <button onclick="openTeacherModal('reset')" class="bg-amber-50 hover:bg-amber-100 text-amber-800 border border-amber-200 font-bold text-sm px-4 py-3 rounded-xl transition">
+            إعادة ضبط الاختبار (للمعلم)
+          </button>
+        </div>
+      </div>
+
+      <!-- لوحة المعلم التفصيلية (مخفية افتراضياً حتى إدخال رمز 1234) -->
+      <div id="teacher-review-panel" class="hidden space-y-6">
+        <!-- ملخص الدرجات -->
+        <div class="bg-white rounded-2xl shadow-md border-2 border-primary-600 p-6 print-card">
+          <div class="flex flex-wrap items-center justify-between gap-4 border-b border-slate-100 pb-4 mb-5">
+            <div>
+              <span class="text-xs font-bold text-primary-600 uppercase tracking-wider">تقرير التصحيح الآلي - خاص بالمعلمة</span>
+              <h3 class="text-xl font-black text-slate-800 mt-0.5">النتيجة التفصيلية ونموذج الإجابة</h3>
+            </div>
+            <div class="bg-primary-50 border border-primary-200 px-5 py-3 rounded-2xl text-center">
+              <div class="text-xs text-primary-700 font-bold">الدرجة التقديرية الكلية</div>
+              <div class="text-2xl font-black text-primary-800" id="total-score-display">0 / 40</div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 text-center">
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div class="text-xs text-slate-500 font-semibold">القسم الأول (نعم/لا)</div>
+              <div class="text-base font-extrabold text-slate-800 mt-1" id="sec1-score">0 / 13</div>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div class="text-xs text-slate-500 font-semibold">القسم الثاني (الإكمال)</div>
+              <div class="text-base font-extrabold text-slate-800 mt-1" id="sec2-score">0 / 10</div>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div class="text-xs text-slate-500 font-semibold">القسم الثالث (التوصيل)</div>
+              <div class="text-base font-extrabold text-slate-800 mt-1" id="sec3-score">0 / 7</div>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-xl border border-slate-200">
+              <div class="text-xs text-slate-500 font-semibold">القسم الرابع (المقالي)</div>
+              <div class="text-base font-extrabold text-slate-800 mt-1" id="sec4-score">0 / 10</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- تفاصيل مراجعة كل سؤال -->
+        <div id="detailed-review-container" class="space-y-6"></div>
+      </div>
+    </section>
+
+  </main>
+
+  <script>
+    // ==========================================
+    // 1. بيانات الاختبار الكاملة (مطابقة للملف المرفق)
+    // ==========================================
+    const EXAM_DATA = {
+      teacherPin: "202677",
+      durationMinutes: 45,
+      storageKey: "manaber_alilm_ict_g6_exam_2026_v1",
+
+      // القسم الأول: 13 فقرة (نعم / لا)
+      section1: [
+        { id: 1, text: "كلمة بروتوكول تعني قانون.", answer: "نعم" },
+        { id: 2, text: "يمكن أن يشترك أكثر من جهاز في عنوان IP واحد داخل الشبكة.", answer: "لا" },
+        { id: 3, text: "تُستخدم الشبكة المحلية (LAN) في المؤسسات الصغيرة والمدارس وأحياناً في المنزل، ويمكن أن توصل سلكياً أو لاسلكياً.", answer: "نعم" },
+        { id: 4, text: "في شبكة الند للند (Peer to Peer) يكون جهاز الخادم (Server) بمستوى صلاحيات أعلى من بقية الأجهزة.", answer: "لا" },
+        { id: 5, text: "الذاكرة العشوائية (RAM) مسؤولة عن التخزين المؤقت للبيانات أثناء عملية المعالجة.", answer: "نعم" },
+        { id: 6, text: "البطاريات الخارجية (UPS) تجعل السيرفر يعمل لفترة زمنية محددة في حال انقطاع التيار الكهربائي.", answer: "نعم" },
+        { id: 7, text: "تعتمد الحوسبة السحابية على البنية التحتية التي تشمل الحواسيب وشبكة الإنترنت والمساحات التخزينية للمعلومات.", answer: "نعم" },
+        { id: 8, text: "تعد الفلاشات والأسطوانات ومواقع الإنترنت غير الموثوقة من مصادر الفيروسات.", answer: "نعم" },
+        { id: 9, text: "تدمير البيانات لا يُعتبر جريمة إلكترونية.", answer: "لا" },
+        { id: 10, text: "كلمة السر الضعيفة أو السهلة الاستنتاج تحمي الحاسوب وحساباتك من الاختراق.", answer: "لا" },
+        { id: 11, text: "حذف رسائل المعتدين يصعب الوصول لهم ويفقد دليل الإدانة.", answer: "نعم" },
+        { id: 12, text: "يُستخدم الحاسوب في الطائرات وبعض المركبات الأخرى كقائد بديل في حالة عدم تمكن قائد الطائرة أو المركبة من مواصلة عمله.", answer: "نعم" },
+        { id: 13, text: "تُستخدم شبكات الحاسوب في مكاتب شركات النقل للمساعدة في حجز التذاكر ومنع التضارب بتحديد مقعد واحد لأكثر من راكب.", answer: "نعم" }
+      ],
+
+      // القسم الثاني: 10 فقرات أكمل الفراغ (قائمة منسدلة تفاعلية)
+      section2: [
+        {
+          id: 1,
+          before: "بروتوكول الشبكة الأكثر شيوعاً واستخداماً هو بروتوكول",
+          after: "(بروتوكول الإنترنت).",
+          answer: "IP",
+          options: ["IP", "HTML", "USB", "RAM"]
+        },
+        {
+          id: 2,
+          before: "تُستخدم الشبكات واسعة المدى (WAN) لربط الأجهزة التي تفصلها مسافات كبيرة بين المدن أو الدول أو حتى",
+          after: ".",
+          answer: "القارات",
+          options: ["القارات", "الفصول الدراسية", "المكاتب المتجاورة", "الغرف المنزلية"]
+        },
+        {
+          id: 3,
+          before: "يقوم",
+          after: "بتقديم المساعدة وتلبية وتوصيل الأوامر والبيانات إلى أجهزة الحاسوب الأخرى داخل الشبكة، كما يستضيف المواقع الإلكترونية.",
+          answer: "خادم الشبكة (Server)",
+          options: ["خادم الشبكة (Server)", "الجدار الناري", "القرص المدمج", "الطابعة الشبكية"]
+        },
+        {
+          id: 4,
+          before: "من مكونات الحوسبة السحابية (Cloud): المنصات (Platforms)، والبنية التحتية (Infrastructure) و",
+          after: ".",
+          answer: "البرمجيات (Software)",
+          options: ["البرمجيات (Software)", "البطاريات الاحتياطية", "الكابلات النحاسية", "الشاشات الذكية"]
+        },
+        {
+          id: 5,
+          before: "من عناصر نظام المعلومات الإلكترونية الأجهزة والبرامج، ووسيلة الاتصال و",
+          after: ".",
+          answer: "البيانات والعنصر البشري",
+          options: ["البيانات والعنصر البشري", "الأقراص الصلبة فقط", "الفيروسات الرقمية", "الطابعات الليزرية"]
+        },
+        {
+          id: 6,
+          before: "من مهددات نظم المعلومات الفيروسات، وتعطيل الخدمة، ومهاجمة المعلومات المرسلة و",
+          after: ".",
+          answer: "الاختراق (التجسس)",
+          options: ["الاختراق (التجسس)", "النسخ الاحتياطي", "تحديث النظام", "التشفير الآمن"]
+        },
+        {
+          id: 7,
+          before: "",
+          after: "هو حاجز أو بوابة مرور بين الإنترنت والشبكة والحاسوب، مهمته مراجعة أي اتصال يحدث للحاسوب ومنع دخول الفيروسات والبرامج الضارة.",
+          answer: "الجدار الناري (Firewall)",
+          options: ["الجدار الناري (Firewall)", "بروتوكول الإنترنت (IP)", "خادم البريد", "الذاكرة العشوائية (RAM)"]
+        },
+        {
+          id: 8,
+          before: "تعني عملية",
+          after: "تحويل البيانات من شكلها الطبيعي إلى شكل آخر يصعب قراءته.",
+          answer: "تشفير البيانات",
+          options: ["تشفير البيانات", "ضغط الملفات", "حذف البيانات", "نسخ البيانات"]
+        },
+        {
+          id: 9,
+          before: "من قواعد الاستخدام الآمن للإنترنت عدم مشاركة",
+          after: "الخاصة بك مع أحد، وعدم قبول طلبات أو مقابلة الغرباء إلا برفقة أحد أفراد الأسرة الكبار.",
+          answer: "كلمة المرور والمعلومات الشخصية",
+          options: ["كلمة المرور والمعلومات الشخصية", "الدروس التعليمية العامة", "الكتب المدرسية", "المواضيع الثقافية"]
+        },
+        {
+          id: 10,
+          before: "يُستفاد من الحاسوب في النقل والمواصلات في تخزين",
+          after: "وإعداد التذاكر وتوزيعها للمسافرين.",
+          answer: "بيانات الرحلات",
+          options: ["بيانات الرحلات", "الألعاب الإلكترونية", "الملفات الصوتية", "الصور الشخصية"]
+        }
+      ],
+
+      // القسم الثالث: 7 فقرات توصيل
+      section3: {
+        itemsA: [
+          { id: 1, term: "عنوان بروتوكول الإنترنت (IP Address)", correctDescId: "c" },
+          { id: 2, term: "خادم الشبكة (Server)", correctDescId: "d" },
+          { id: 3, term: "تعطيل الخدمة", correctDescId: "a" },
+          { id: 4, term: "أمن المعلومات", correctDescId: "e" },
+          { id: 5, term: "تشفير البيانات", correctDescId: "b" },
+          { id: 6, term: "مهاجمة المعلومات المرسلة", correctDescId: "g" },
+          { id: 7, term: "الملاحة الجوية", correctDescId: "h" }
+        ],
+        optionsB: [
+          { id: "a", text: "أ) هجوم يقوم به القرصان أو الهاكرز لتعطيل خدمة السيرفر في الشبكة." },
+          { id: "b", text: "ب) تحويل البيانات من شكلها الطبيعي إلى شكل آخر يصعب قراءته." },
+          { id: "c", text: "ج) عنوان رقمي يُعطى للجهاز المتصل بالشبكة لتمييزه وإرسال أو استقبال البيانات عليه." },
+          { id: "d", text: "د) جهاز حاسوب ذو مواصفات عالية يقدم الخدمات والموارد لبقية الأجهزة في الشبكة." },
+          { id: "e", text: "هـ) حماية المعلومات والبيانات من التبديل أو التخريب أو الاستيلاء عليها بدون وجه حق." },
+          { id: "g", text: "ز) عملية اعتراض الرسائل المرسلة من جهة لأخرى والعبث بها مثل رسائل البريد الإلكتروني." },
+          { id: "h", text: "ح) متابعة حركة الطائرات وإرسال إشارات ورسائل لقائد الطائرة عبر الحاسوب وشبكاته." }
+        ]
+      },
+
+      // القسم الرابع: 6 أسئلة مقالية + كلمات مفتاحية للتصحيح الذكي + الإجابة النموذجية
+      section4: [
+        {
+          id: 1,
+          question: "ما المقصود ببروتوكول الإنترنت (IP)، وما دور عنوان IP Address؟",
+          maxPoints: 2,
+          keywords: ["قانون", "قواعد", "تنظيم", "نقل", "بيانات", "عنوان", "رقمي", "تمييز", "جهاز", "استقبال", "إرسال"],
+          modelAnswer: "بروتوكول الإنترنت (IP) هو مجموعة القواعد والقوانين التي تنظم عملية إرسال واستقبال البيانات عبر الشبكة، ودور عنوان (IP Address) هو إعطاء كل جهاز متصل بالشبكة رقماً فريداً لتمييزه وتوجيه البيانات إليه بدقة."
+        },
+        {
+          id: 2,
+          question: "قارن بين الشبكة المحلية (LAN) والشبكة واسعة المدى (WAN) من حيث المساحة والاستخدام.",
+          maxPoints: 2,
+          keywords: ["محدودة", "صغيرة", "مدرسة", "منزل", "مؤسسة", "كبيرة", "مدن", "دول", "قارات", "إنترنت"],
+          modelAnswer: "الشبكة المحلية (LAN): تغطي مساحة جغرافية محدودة وصغيرة وتُستخدم داخل المنازل والمدارس والمؤسسات الصغيرة. أما الشبكة واسعة المدى (WAN): فتغطي مساحات جغرافية شاسعة وتربط الأجهزة بين المدن والدول والقارات مثل شبكة الإنترنت."
+        },
+        {
+          id: 3,
+          question: "اذكر ثلاثة من المكونات الأساسية لخادم الشبكة (Server) مع توضيح وظيفة واحد منها.",
+          maxPoints: 2,
+          keywords: ["معالج", "ذاكرة", "ram", "قرص", "تخزين", "بطاريات", "ups", "مؤقت", "كهرباء", "شبكة"],
+          modelAnswer: "من مكوناته: المعالج القوي، الذاكرة العشوائية (RAM)، وسائط التخزين عالية السعة، والبطاريات الخارجية (UPS). وظيفة (RAM): التخزين المؤقت للبيانات أثناء المعالجة، أو وظيفة (UPS): تشغيل السيرفر لفترة محددة عند انقطاع الكهرباء."
+        },
+        {
+          id: 4,
+          question: "اذكر ثلاثة من أساليب تشفير البيانات التي وردت في درس حماية المعلومات.",
+          maxPoints: 1.5,
+          keywords: ["تبديل", "استبدال", "إزاحة", "ترتيب", "رموز", "أرقام", "مفتاح", "حروف"],
+          modelAnswer: "1) التشفير بالاستبدال (تبديل الحروف بحروف أو رموز أخرى). 2) التشفير بالإزاحة (تحريك ترتيب الحروف بعدد معين). 3) التشفير بإعادة ترتيب مواضع الحروف أو استخدام مفتاح تشفير."
+        },
+        {
+          id: 5,
+          question: "كيف تحمي نفسك من مخاطر استخدام الإنترنت؟ اذكر ثلاث قواعد من قواعد الاستخدام الآمن للإنترنت.",
+          maxPoints: 1.5,
+          keywords: ["كلمة", "سر", "مرور", "غرباء", "معلومات", "شخصية", "روابط", "مجهولة", "الأسرة", "مشاركة"],
+          modelAnswer: "1) عدم مشاركة كلمة المرور أو المعلومات الشخصية مع أي أحد. 2) عدم قبول طلبات الصداقة أو مقابلة الغرباء إلا برفقة أحد أفراد الأسرة الكبار. 3) عدم فتح الروابط أو الملفات المجهولة والمشبوهة."
+        },
+        {
+          id: 6,
+          question: "كيف يسهم الحاسوب في حجز التذاكر والملاحة الجوية، وما دوره في القيادة الآلية للمركبات والطائرات؟",
+          maxPoints: 1,
+          keywords: ["تذاكر", "تضارب", "مقعد", "حركة", "طائرات", "إشارات", "قائد", "بديل", "آلية"],
+          modelAnswer: "في حجز التذاكر: يخزن بيانات الرحلات ويمنع التضارب بتحديد مقعد واحد لكل راكب. في الملاحة الجوية: يتابع حركة الطائرات ويرسل الإشارات والرسائل لقائد الطائرة. وفي القيادة الآلية: يعمل كقائد بديل عند تعذر مواصلة قائد الطائرة أو المركبة لعمله."
+        }
+      ]
+    };
+
+    // ==========================================
+    // 9. لوحة المعلم المحمية برمز المرور (202677)
+    // ==========================================
+    function openTeacherModal(action) {
+      teacherModalAction = action;
+      const modal = document.getElementById("teacher-modal");
+      const title = document.getElementById("modal-title");
+      const pinInput = document.getElementById("teacher-pin");
+      const errEl = document.getElementById("pin-error");
+
+      title.textContent = action === "reset"
+        ? "إعادة ضبط الاختبار (خاص بالمعلمة)"
+        : "عرض النتيجة ونموذج الإجابة (خاص بالمعلمة)";
+
+      pinInput.value = "";
+      errEl.classList.add("hidden");
+      modal.classList.remove("hidden");
+      modal.classList.add("flex");
+      setTimeout(() => pinInput.focus(), 100);
+    }
+
+    function closeTeacherModal() {
+      const modal = document.getElementById("teacher-modal");
+      modal.classList.add("hidden");
+      modal.classList.remove("flex");
+    }
+
+    function verifyTeacherPin() {
+      const pin = document.getElementById("teacher-pin").value.trim();
+      const errEl = document.getElementById("pin-error");
+
+      if (pin !== EXAM_DATA.teacherPin) {
+        errEl.classList.remove("hidden");
+        return;
+      }
+
+      closeTeacherModal();
+
+      if (teacherModalAction === "reset") {
+        localStorage.removeItem(EXAM_DATA.storageKey);
+        currentSubmission = null;
+        answers = { sec1: {}, sec2: {}, sec3: {}, sec4: {} };
+        document.getElementById("exam-form").reset();
+        updateProgress();
+        document.getElementById("result-screen").classList.add("hidden");
+        document.getElementById("previous-attempt-alert").classList.add("hidden");
+        document.getElementById("start-screen").classList.remove("hidden");
+        document.getElementById("student-name-input").value = "";
+        document.getElementById("seat-number-input").value = "";
+        showToast("تمت إعادة ضبط الاختبار بنجاح، يمكن لطالب جديد البدء الآن.", "success");
+      } else {
+        renderTeacherReviewPanel();
+      }
+    }
+
+    function renderTeacherReviewPanel() {
+      if (!currentSubmission) return;
+      const { grading, answers: ans } = currentSubmission;
+
+      document.getElementById("total-score-display").textContent = `${grading.total} / ${grading.maxTotal}`;
+      document.getElementById("sec1-score").textContent = `${grading.s1Score} / 13`;
+      document.getElementById("sec2-score").textContent = `${grading.s2Score} / 10`;
+      document.getElementById("sec3-score").textContent = `${grading.s3Score} / 7`;
+      document.getElementById("sec4-score").textContent = `${grading.s4Score} / 10`;
+
+      const container = document.getElementById("detailed-review-container");
+
+      // مراجعة القسم الأول
+      const rev1 = EXAM_DATA.section1.map(q => {
+        const st = ans.sec1[q.id] || "لم يُجب";
+        const ok = st === q.answer;
+        return `
+          <div class="p-3.5 rounded-xl border ${ok ? 'bg-emerald-50/60 border-emerald-200' : 'bg-rose-50/60 border-rose-200'} flex flex-col sm:flex-row sm:items-center justify-between gap-2 print-card">
+            <div class="text-sm font-semibold text-slate-800"><span class="font-bold text-primary-700">${q.id}.</span> ${q.text}</div>
+            <div class="flex items-center gap-3 text-xs shrink-0">
+              <span class="px-2.5 py-1 rounded-lg font-bold ${ok ? 'bg-emerald-100 text-emerald-800' : 'bg-rose-100 text-rose-800'}">إجابة الطالب: ${st}</span>
+              ${!ok ? `<span class="px-2.5 py-1 rounded-lg font-bold bg-white border border-slate-200 text-slate-700">الصحيح: ${q.answer}</span>` : ''}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      // مراجعة القسم الثاني
+      const rev2 = EXAM_DATA.section2.map(q => {
+        const st = ans.sec2[q.id] || "لم يُجب";
+        const ok = st === q.answer;
+        return `
+          <div class="p-3.5 rounded-xl border ${ok ? 'bg-emerald-50/60 border-emerald-200' : 'bg-rose-50/60 border-rose-200'} space-y-1.5 print-card">
+            <div class="text-sm font-semibold text-slate-800">
+              <span class="font-bold text-primary-700">${q.id}.</span> ${q.before} <span class="underline font-extrabold text-primary-800">[ ${st} ]</span> ${q.after}
+            </div>
+            <div class="flex items-center gap-2 text-xs">
+              <span class="font-bold ${ok ? 'text-emerald-700' : 'text-rose-700'}">${ok ? '✓ إجابة صحيحة' : `✗ الإجابة الصحيحة: ${q.answer}`}</span>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      // مراجعة القسم الثالث
+      const rev3 = EXAM_DATA.section3.itemsA.map(item => {
+        const stId = ans.sec3[item.id];
+        const stObj = EXAM_DATA.section3.optionsB.find(o => o.id === stId);
+        const corrObj = EXAM_DATA.section3.optionsB.find(o => o.id === item.correctDescId);
+        const ok = stId === item.correctDescId;
+        return `
+          <div class="p-3.5 rounded-xl border ${ok ? 'bg-emerald-50/60 border-emerald-200' : 'bg-rose-50/60 border-rose-200'} space-y-1 print-card">
+            <div class="text-sm font-extrabold text-slate-800"><span class="text-primary-700">${item.id}.</span> ${item.term}</div>
+            <div class="text-xs text-slate-700"><strong>اختيار الطالب:</strong> ${stObj ? stObj.text : "لم يُجب"}</div>
+            ${!ok ? `<div class="text-xs text-emerald-800 font-bold"><strong>الإجابة الصحيحة:</strong> ${corrObj.text}</div>` : ''}
+          </div>
+        `;
+      }).join("");
+
+      // مراجعة القسم الرابع
+      const rev4 = EXAM_DATA.section4.map(q => {
+        const stText = ans.sec4[q.id] || "لم يكتب الطالب إجابة.";
+        const info = grading.essayDetails[q.id];
+        return `
+          <div class="p-4 rounded-xl border border-slate-200 bg-white space-y-2 print-card">
+            <div class="flex items-center justify-between gap-2">
+              <div class="text-sm font-extrabold text-slate-800"><span class="text-primary-700">${q.id}.</span> ${q.question}</div>
+              <span class="px-2.5 py-1 rounded-lg bg-primary-50 text-primary-700 text-xs font-extrabold shrink-0">
+                الدرجة التقديرية: ${info.earned} / ${info.max}
+              </span>
+            </div>
+            <div class="bg-slate-50 p-3 rounded-lg border border-slate-200/80 text-xs sm:text-sm text-slate-800">
+              <strong class="text-slate-600">إجابة الطالب:</strong> ${stText}
+            </div>
+            <div class="bg-emerald-50/70 p-3 rounded-lg border border-emerald-200 text-xs sm:text-sm text-emerald-950">
+              <strong class="text-emerald-800">الإجابة النموذجية:</strong> ${q.modelAnswer}
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      container.innerHTML = `
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-3">
+          <h4 class="font-extrabold text-primary-800 border-b border-slate-100 pb-2">مراجعة القسم الأول: (نعم / لا)</h4>
+          <div class="space-y-2">${rev1}</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-3">
+          <h4 class="font-extrabold text-primary-800 border-b border-slate-100 pb-2">مراجعة القسم الثاني: (أكمل الفراغ)</h4>
+          <div class="space-y-2">${rev2}</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-3">
+          <h4 class="font-extrabold text-primary-800 border-b border-slate-100 pb-2">مراجعة القسم الثالث: (التوصيل)</h4>
+          <div class="space-y-2">${rev3}</div>
+        </div>
+        <div class="bg-white rounded-2xl shadow-sm border border-slate-200 p-5 space-y-3">
+          <h4 class="font-extrabold text-primary-800 border-b border-slate-100 pb-2">مراجعة القسم الرابع: (الأسئلة المقالية)</h4>
+          <div class="space-y-3">${rev4}</div>
+        </div>
+      `;
+
+      const panel = document.getElementById("teacher-review-panel");
+      panel.classList.remove("hidden");
+      panel.scrollIntoView({ behavior: "smooth" });
+      showToast("تم فتح لوحة المعلمة وعرض الدرجات التفصيلية.", "success");
+    }
+  </script>
+</body>
+</html>
